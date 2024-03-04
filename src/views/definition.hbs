@@ -38,7 +38,7 @@
       padding-right: 1%;
       /* Adjust the height as needed */
       overflow-y: auto;
-      scrollbar-width: none;
+      scrollbar-width: 1px;
       /* Hide scrollbar in Firefox */
       -ms-overflow-style: none;
     }
@@ -48,8 +48,22 @@
     }
 
     #overlay::-webkit-scrollbar {
-      display: none;
-      /* Hide scrollbar in Chrome, Safari, and Opera */
+      width: 5px;
+      /* Adjust the width of the scrollbar */
+      height: 5px;
+      /* Adjust the height of the scrollbar */
+    }
+
+    #overlay::-webkit-scrollbar-track {
+      background-color: rgba(0, 0, 0, 0.1);
+      /* Set background color of the scrollbar track */
+    }
+
+    #overlay::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.3);
+      /* Set color of the scrollbar thumb */
+      border-radius: 10px;
+      /* Adjust the radius of the scrollbar thumb */
     }
 
     #loader {
@@ -87,6 +101,38 @@
       margin-bottom: 10px;
     }
 
+    .range-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .range-container input[type="range"] {
+      margin-right: 10px;
+      /* Adjust spacing between the input and the span */
+    }
+
+    #downloadButton {
+      background-color: rgb(0, 140, 255);
+      /* Set background color to blue */
+      color: white;
+      /* Set text color to white */
+      border-radius: 5px;
+      /* Add rounded corners */
+      padding: 10px 20px;
+      /* Add padding for better appearance */
+      border: none;
+      cursor: pointer;
+      /* Remove default border */
+    }
+
+    #downloadButton:disabled {
+      opacity: 0.5;
+      /* Reduce opacity for disabled state */
+      cursor: not-allowed;
+      /* Change cursor to not-allowed for disabled state */
+    }
+    
+
 
     @keyframes spin {
       0% {
@@ -104,6 +150,8 @@
   <div id="loader"></div>
   <div id="container">
     <div id="overlay">
+      <div><button id="downloadButton" disabled>Download</button></div>
+
       {{#each inputs}}
       <div>
         <label for="{{id}}">{{name}}</label>
@@ -111,7 +159,10 @@
         <input type="number" id="{{../id}}" value="{{value}}">
         {{/number}}
         {{#range}}
-        <input type="range" id="{{../id}}" min="{{min}}" max="{{max}}" value="{{value}}" step="{{step}}">
+        <div class="range-container">
+          <input type="range" id="{{../id}}" min="{{min}}" max="{{max}}" value="{{value}}" step="{{step}}">
+          <span id="{{../id}}_value">{{value}}</span>
+        </div>
         {{/range}}
         {{#bool}}
         <input type="checkbox" id="{{../id}}" {{#value}}checked{{/value}}>
@@ -150,6 +201,22 @@
     import rhino3dm from 'rhino3dm'
     import { RhinoCompute } from 'rhino_compute'
 
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var rangeInputs = document.querySelectorAll('input[type="range"]');
+      rangeInputs.forEach(function (input) {
+        input.addEventListener('input', function () {
+          var rangeId = this.getAttribute('id');
+          var rangeValue = this.value;
+          var spanElement = document.getElementById(rangeId + '_value');
+          if (spanElement) {
+            spanElement.textContent = rangeValue;
+          }
+        });
+      });
+    });
+
+    
     // set up loader for converting the results to threejs
     const loader = new Rhino3dmLoader()
     loader.setLibraryPath('https://unpkg.com/rhino3dm@8.0.0-beta3/')
@@ -171,6 +238,9 @@
     RhinoCompute.apiKey = '123456'
     init()
     compute()
+
+    const downloadButton = document.getElementById("downloadButton")
+    downloadButton.onclick = download
 
 
     /////////////////////////////////////////////////////////////////////////////
