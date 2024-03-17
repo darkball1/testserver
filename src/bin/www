@@ -2,6 +2,8 @@
 
 const definitions = require('../definitions.js').registerDefinitions()
 const throng = require('throng')
+const fs = require('fs')
+const https = require('https')
 
 const WORKERS = process.env.WEB_CONCURRENCY || 1
 
@@ -22,7 +24,6 @@ function start(id){
   app.set('definitions', definitions)
   var debug = require('debug')('compute.appserver:server')
 
-  var http = require('http')
 
   /**
  * Get port from environment and store in Express.
@@ -35,7 +36,15 @@ function start(id){
  * Create HTTP server.
  */
 
-  var server = http.createServer(app)
+  const privateKeyPath = '/etc/letsencrypt/live/testapi.pepperplot.com/privkey.pem'
+  const certificatePath = '/etc/letsencrypt/live/testapi.pepperplot.com/fullchain.pem'
+
+  const privateKey = fs.readFileSync(privateKeyPath, 'utf8')
+  const certificate = fs.readFileSync(certificatePath, 'utf8')
+  const credentials = { key: privateKey, cert: certificate }
+
+
+  const server = https.createServer(credentials, app)
 
   /**
  * Listen on provided port, on all network interfaces.
